@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 from dotenv import load_dotenv
+import random
 
 import discord
 from discord.ext import commands
@@ -51,15 +52,52 @@ async def send_message(message, user_message: str) -> None:
 # Step 3: Send message to console when bot is started up
 @client.event
 async def on_ready() -> None:
-    print(f'{client.user} has connected to Discord!')
+    print(f'-- {client.user} has connected to Discord! --')
 
-@client.command()
+# Commands
+
+@client.command(aliases=['hi', 'hey'])
 async def hello(ctx) -> None:
     await ctx.send("Hello World!")
 
-@client.command()
+@client.command(aliases=['yo', 'sup'])
 async def mention(ctx) -> None:
     await ctx.send(f'Sup ma sigma {ctx.author.mention}!')
+
+# Sending embed
+@client.command(aliases=['embed', 'embedtest'])
+async def sendembed(ctx) -> None:
+    embedmsg = discord.Embed(title="Embed Test very cool", description='I guess this is a cool embed with random color', color=discord.Color.random())
+    embedmsg.set_thumbnail(url=ctx.guild.icon)
+    embedmsg.add_field(name="Name of field", value="Value of field", inline=False)
+    embedmsg.set_image(url='https://images-ext-1.discordapp.net/external/_JXBi1vDnXe2dGMQfzN1MMC5Hq08eEh72Fb0fEhP1fU/%3Fsize%3D160%26name%3Dtricked/https/media.discordapp.net/stickers/865660032896598026.png?format=webp&quality=lossless')
+    embedmsg.set_footer(text="wowow footer test", icon_url=ctx.author.avatar)
+    await ctx.send(embed=embedmsg)
+
+# Ping command using embed
+@client.command(aliases=['latency'])
+async def ping(ctx) -> None:
+    latency = client.latency * 1000
+    embedcolor = None
+    if latency < 100:
+        embedcolor = discord.Color.green()
+    elif latency < 300:
+        embedcolor = discord.Color.orange()
+    else:
+        embedcolor = discord.Color.red()
+    ping_embed = discord.Embed(title="Pong!", description=f'Latency: **{latency:.2f}** ms', color=embedcolor)
+    ping_embed.set_footer(text="Requested by " + ctx.author.name, icon_url=ctx.author.avatar)
+    await ctx.send(embed=ping_embed)
+
+# Shutdown bot command
+@client.command(aliases=['exit', 'stop'])
+async def shutdown(ctx) -> None:
+    if ctx.author.id == 853588392843018310 or ctx.author.id == 853586555289206814:
+        await ctx.send("Bot shutting down...")
+        sys.exit()
+    else:
+        await ctx.send("Error: No permission to shutdown bot")
+        return
 
 """
 # Step 4: Handling messages
