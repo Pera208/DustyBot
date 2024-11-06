@@ -10,4 +10,4 @@ def get_response(user_input: str) -> str:
     elif 'sigma' in lowered:
         return 'so sigma'
     else:
-        return random.choice(["default ahh response", "I don't know what to say yet", "I'm not super skibidi"])
+        return random.choice(["default ahh response", "I don't know what to say yet", "I'm not super skibidi", "dumdumdum"])
