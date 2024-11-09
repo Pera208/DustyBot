@@ -3,6 +3,7 @@ import sys
 import logging
 from dotenv import load_dotenv
 import random
+import asyncio
 
 import discord
 from discord.ext import commands
@@ -10,15 +11,47 @@ from discord.ext import commands
 # Local file
 from responses import get_response
 
-# Step 0: Load bot Token
+# Load bot Token
 load_dotenv()
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 
-# Step 1: Bot setup
+# Bot setup
 intents = discord.Intents.default()
 intents.message_content = True
 client = commands.Bot(command_prefix='?', intents=intents)
 
+# Load cogs
+async def load() -> None:
+    for filename in os.listdir('./cogs'):
+        if filename.endswith('.py'):
+            await client.load_extension(f'cogs.{filename[:-3]}')
+
+# Main entry point
+async def main() -> None:
+
+    async with client:
+        await load()
+        await client.start(TOKEN)
+
+if __name__ == '__main__':
+    asyncio.run(main())
+
+
+
+
+
+# Unused old code
+    # Step 6: Set up logging -> Removed for now
+    # handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+    # handler.setLevel(logging.INFO)
+    # formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', style='{')
+    # handler.setFormatter(formatter)
+
+    # logger = logging.getLogger('discord')
+    # logger.setLevel(logging.INFO)
+    # logger.addHandler(handler)
+
+    # Old run(for file without cogs) -> client.run(token=TOKEN, log_handler=handler, root_logger=True)
 """
 # Step 2: Function to send message, called when some users sent a message
 async def send_message(message, user_message: str) -> None:
@@ -47,57 +80,12 @@ async def send_message(message, user_message: str) -> None:
         await message.author.send(response) if is_private else await message.channel.send(response)
     except Exception as e:
         print(e)
-"""
-
+        
 # Step 3: Send message to console when bot is started up
 @client.event
 async def on_ready() -> None:
     print(f'-- {client.user} has connected to Discord! --')
-
-# Commands
-
-@client.command(aliases=['hi', 'hey'])
-async def hello(ctx) -> None:
-    await ctx.send("Hello World!")
-
-@client.command(aliases=['yo', 'sup'])
-async def mention(ctx) -> None:
-    await ctx.send(f'Sup ma sigma {ctx.author.mention}!')
-
-# Sending embed
-@client.command(aliases=['embed', 'embedtest'])
-async def sendembed(ctx) -> None:
-    embedmsg = discord.Embed(title="Embed Test very cool", description='I guess this is a cool embed with random color', color=discord.Color.random())
-    embedmsg.set_thumbnail(url=ctx.guild.icon)
-    embedmsg.add_field(name="Name of field", value="Value of field", inline=False)
-    embedmsg.set_image(url='https://images-ext-1.discordapp.net/external/_JXBi1vDnXe2dGMQfzN1MMC5Hq08eEh72Fb0fEhP1fU/%3Fsize%3D160%26name%3Dtricked/https/media.discordapp.net/stickers/865660032896598026.png?format=webp&quality=lossless')
-    embedmsg.set_footer(text="wowow footer test", icon_url=ctx.author.avatar)
-    await ctx.send(embed=embedmsg)
-
-# Ping command using embed
-@client.command(aliases=['latency'])
-async def ping(ctx) -> None:
-    latency = client.latency * 1000
-    embedcolor = None
-    if latency < 100:
-        embedcolor = discord.Color.green()
-    elif latency < 300:
-        embedcolor = discord.Color.orange()
-    else:
-        embedcolor = discord.Color.red()
-    ping_embed = discord.Embed(title="Pong!", description=f'Latency: **{latency:.2f}** ms', color=embedcolor)
-    ping_embed.set_footer(text="Requested by " + ctx.author.name, icon_url=ctx.author.avatar)
-    await ctx.send(embed=ping_embed)
-
-# Shutdown bot command
-@client.command(aliases=['exit', 'stop'])
-async def shutdown(ctx) -> None:
-    if ctx.author.id == 853588392843018310 or ctx.author.id == 853586555289206814:
-        await ctx.send("Bot shutting down...")
-        sys.exit()
-    else:
-        await ctx.send("Error: No permission to shutdown bot")
-        return
+"""
 
 """
 # Step 4: Handling messages
@@ -128,13 +116,3 @@ async def on_message(message) -> None:
     # Make it compatible with discord.ext
     await client.process_commands(message)
 """
-# Step 5: Main entry point
-def main() -> None:
-
-    # Step 6: Set up logging
-    handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-
-    client.run(token=TOKEN, log_handler=handler, root_logger=True)
-
-if __name__ == '__main__':
-    main()
