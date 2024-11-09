@@ -4,9 +4,10 @@ import logging
 from dotenv import load_dotenv
 import random
 import asyncio
+import itertools
 
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 # Local file
 from responses import get_response
@@ -23,14 +24,50 @@ client = commands.Bot(command_prefix='?', intents=intents)
 # Load cogs
 async def load() -> None:
     for filename in os.listdir('./cogs'):
-        if filename.endswith('.py'):
+        if filename.endswith('.py') and filename != '__init__.py':
             await client.load_extension(f'cogs.{filename[:-3]}')
+
+# Bot status loop
+artists: list = ["Coldplay", "Avicii", "The Beatles", "C418", "Radwimps", "Whal & Dolph", "Dept", "Purpeech", "Tilly birds", "The weeknd", "Harry styles", "Yoasobi", "Bruno Mars", "25 hours", "Yew", "Polycat"]
+
+bot_status = itertools.cycle([
+    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Game("with your feelings"),
+    discord.Game("discord.py"),
+    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Game("with your mother"),
+    discord.Activity(type=discord.ActivityType.watching, name="hindi python tutorial"),
+    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Activity(type=discord.ActivityType.watching, name="how to be god hacker 111"),
+    discord.Game("discord.py poggers"),
+    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Activity(type=discord.ActivityType.watching, name="skibidi toilet"),
+])
+
+@tasks.loop(seconds=60)
+async def change_bot_status():
+    # Debug : print("Attempting to change bot status")
+    await client.change_presence(activity=next(bot_status))
+    # Debug : print("Cycling through bot status")
+
+@change_bot_status.before_loop
+async def before_change_bot_status():
+    print("Waiting for bot to connect to change status...")
+    await client.wait_until_ready()
+
+@client.event
+async def on_ready():
+    print(f"-- {client.user} has connected to Discord! --")
+    if not change_bot_status.is_running():
+        await asyncio.sleep(3)
+        change_bot_status.start()
 
 # Main entry point
 async def main() -> None:
 
     async with client:
         await load()
+        change_bot_status.start()
         await client.start(TOKEN)
 
 if __name__ == '__main__':

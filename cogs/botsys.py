@@ -4,15 +4,13 @@ import sys
 import discord
 from discord.ext import commands
 
+from main import change_bot_status
+
 # Cog for bot system commands, and some tests
 
 class botsys(commands.Cog):
     def __init__(self, client):
         self.client = client
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print(f"-- {self.client.user} has connected to Discord! --")
 
     # Ping command using embed
     @commands.command(aliases=['latency'])
@@ -33,8 +31,10 @@ class botsys(commands.Cog):
     @commands.command(aliases=['exit', 'stop'])
     async def shutdown(self, ctx) -> None:
         if ctx.author.id == 853588392843018310 or ctx.author.id == 853586555289206814:
+            print("Bot is shutting down...")
             await ctx.send("Bot shutting down...")
-            sys.exit()
+            change_bot_status.cancel()
+            await self.client.close()
         else:
             await ctx.send("Error: No permission to shutdown bot")
             return
