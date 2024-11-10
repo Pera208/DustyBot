@@ -20,6 +20,15 @@ class Test(commands.Cog):
     async def mention(self, ctx) -> None:
         await ctx.send(f'Sup ma sigma {ctx.author.mention}!')
 
+    # Slash command for hello
+    @discord.app_commands.command(name="hello", description="Say hello")
+    async def slashhello(self, interaction: discord.Interaction, mention: bool=False) -> None:
+        greetings: list = ['Yo', 'Hello World', 'Hey', 'Hi', 'Sup ma bro', 'I\'m a tired discord bot thats speaking with']
+        if mention:
+            await interaction.response.send_message(f"{random.choice(greetings)} {interaction.user.mention}")
+        else:
+            await interaction.response.send_message(f"{random.choice(greetings)} {interaction.user.name}")
+
 # Setup
 async def setup(client):
     await client.add_cog(Test(client))

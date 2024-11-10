@@ -16,8 +16,19 @@ from responses import get_response
 load_dotenv()
 TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 
+# Configure logging
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', style='{')
+handler.setFormatter(formatter)
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+logger.propagate = False
+
 # Bot setup
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.message_content = True
 client = commands.Bot(command_prefix='?', intents=intents)
 
@@ -27,20 +38,23 @@ async def load() -> None:
         if filename.endswith('.py') and filename != '__init__.py':
             await client.load_extension(f'cogs.{filename[:-3]}')
 
+# Remove help command
+client.remove_command('help')
+
 # Bot status loop
 artists: list = ["Coldplay", "Avicii", "The Beatles", "C418", "Radwimps", "Whal & Dolph", "Dept", "Purpeech", "Tilly birds", "The weeknd", "Harry styles", "Yoasobi", "Bruno Mars", "25 hours", "Yew", "Polycat"]
 
 bot_status = itertools.cycle([
-    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Activity(type=discord.ActivityType.listening, name=f"{random.choice(artists)}"),
     discord.Game("with your feelings"),
     discord.Game("discord.py"),
-    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Activity(type=discord.ActivityType.listening, name=f"{random.choice(artists)}"),
     discord.Game("with your mother"),
     discord.Activity(type=discord.ActivityType.watching, name="hindi python tutorial"),
-    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Activity(type=discord.ActivityType.listening, name=f"{random.choice(artists)}"),
     discord.Activity(type=discord.ActivityType.watching, name="how to be god hacker 111"),
     discord.Game("discord.py poggers"),
-    discord.Activity(type=discord.ActivityType.listening, name=f"to {random.choice(artists)}"),
+    discord.Activity(type=discord.ActivityType.listening, name=f"{random.choice(artists)}"),
     discord.Activity(type=discord.ActivityType.watching, name="skibidi toilet"),
 ])
 
@@ -55,12 +69,19 @@ async def before_change_bot_status():
     print("Waiting for bot to connect to change status...")
     await client.wait_until_ready()
 
+# When bot is online
 @client.event
 async def on_ready():
     print(f"-- {client.user} has connected to Discord! --")
     if not change_bot_status.is_running():
         await asyncio.sleep(3)
         change_bot_status.start()
+    # Check if theres a mistake with slash commands -> Here for now, will move to using slash commands
+    try:
+        synced_commands = await client.tree.sync()
+        print(f"Synced {len(synced_commands)} commands")
+    except Exception as e:
+        print(f"Error with syncing application commands: {e}")
 
 # Main entry point
 async def main() -> None:
@@ -127,7 +148,7 @@ async def on_ready() -> None:
 """
 # Step 4: Handling messages
 @client.event
-async def on_message(message) -> None:
+async def on_message(message: discord.Message) -> None:
     if message.author == client.user:
         return
 

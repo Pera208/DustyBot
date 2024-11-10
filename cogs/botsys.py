@@ -1,5 +1,6 @@
 import os
 import sys
+import asyncio
 
 import discord
 from discord.ext import commands
@@ -12,9 +13,9 @@ class botsys(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    # Ping command using embed
-    @commands.command(aliases=['latency'])
-    async def ping(self, ctx) -> None:
+    # Ping command with slash command
+    @discord.app_commands.command(name="ping", description="Get bot latency in ms")
+    async def ping(self, interaction: discord.Interaction) -> None:
         latency = self.client.latency * 1000
         embedcolor = None
         if latency < 100:
@@ -24,20 +25,34 @@ class botsys(commands.Cog):
         else:
             embedcolor = discord.Color.red()
         ping_embed = discord.Embed(title="Pong!", description=f'Latency: **{latency:.2f}** ms', color=embedcolor)
-        ping_embed.set_footer(text="Requested by " + ctx.author.name, icon_url=ctx.author.avatar)
-        await ctx.send(embed=ping_embed)
+        ping_embed.set_footer(text="Requested by " + interaction.user.name, icon_url=interaction.user.avatar)
+        await interaction.response.send_message(embed=ping_embed)
 
-    # Shutdown bot command, checking for permissions
-    @commands.command(aliases=['exit', 'stop'])
-    async def shutdown(self, ctx) -> None:
-        if ctx.author.id == 853588392843018310 or ctx.author.id == 853586555289206814:
+    @discord.app_commands.command(name="shutdown", description="Shutdown the bot")
+    async def shutdown(self, interaction: discord.Interaction) -> None:
+        if interaction.user.id == 853588392843018310:
             print("Bot is shutting down...")
-            await ctx.send("Bot shutting down...")
+            await interaction.response.send_message("Bot shutting down...")
             change_bot_status.cancel()
             await self.client.close()
         else:
-            await ctx.send("Error: No permission to shutdown bot")
-            return
+            await interaction.response.send_message("Error: No permission to shutdown bot", ephemeral=True)
+            await asyncio.sleep(7)
+            await interaction.edit_original_response(content="Deleting this message...", embed=None)
+            await asyncio.sleep(3)
+            await interaction.delete_original_response()
+
+    # Shutdown bot command, checking for permissions
+    #@commands.command(aliases=['exit', 'stop'])
+    #async def shutdown(self, ctx) -> None:
+    #    if ctx.author.id == 853588392843018310 or ctx.author.id == 853586555289206814:
+     #       print("Bot is shutting down...")
+      #      await ctx.send("Bot shutting down...")
+      #      change_bot_status.cancel()
+       #     await self.client.close()
+        #else:
+            #await ctx.send("Error: No permission to shutdown bot")
+           # return
             
 
     # Sending embed
