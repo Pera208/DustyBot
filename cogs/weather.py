@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import random
 import asyncio
 import itertools
+import datetime
 
 import discord
 from discord.ext import commands, tasks
@@ -33,11 +34,18 @@ class Weather(commands.Cog):
                     if response.status == 200:
                         data = await response.json()
                         print(data)
-                        weather_embed = discord.Embed(title=f"Weather data for {city}, {data['sys']['country']}", color=discord.Color.random())
+                        
+                        # Convert time to readable format
+                        utc_time = datetime.datetime.fromtimestamp(data['dt'], datetime.timezone.utc)
+                        local_time = utc_time + datetime.timedelta(seconds=data['timezone'])
+                        local_time_native = local_time.replace(tzinfo=None)
+                        print(f"Local time is {local_time}")
+                        
+                        weather_embed = discord.Embed(title=f"Weather data for {city}, {data['sys']['country']}", description=f"The local date and time is {local_time_native} ⏱️", color=discord.Color.random())
                         weather_embed.set_author(name=f"Requested by {interaction.user.name}", icon_url = interaction.user.avatar)
                         weather_embed.set_thumbnail(url=f"http://openweathermap.org/img/wn/{data['weather'][0]['icon']}.png")
 
-                        weather_description = data['weather'][0]['description']
+                        weather_description = data['weather'][0]['description'].capitalize()
                         temperature = data['main']['temp']
                         humidity = data['main']['humidity']
                         feels_like = data['main']['feels_like']

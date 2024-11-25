@@ -68,7 +68,18 @@ class Sensor(commands.Cog):
             temp = self.latest_data['temperature']
             humid = self.latest_data['humidity']
             
-            humid_embed = discord.Embed(title="DHT11 Sensor Data", color=discord.Color.random())
+            color = None
+            # Set embed color based on tmp
+            if temp < 25:
+                color = discord.Color.blue()
+            elif temp < 30:
+                color = discord.Color.green()
+            elif temp < 35:
+                color = discord.Color.orange()
+            else:
+                color = discord.Color.red()
+            
+            humid_embed = discord.Embed(title="DHT11 Sensor Data", color=color)
             humid_embed.set_author(name=f"Requested by {interaction.user.name}", icon_url = interaction.user.avatar)
             humid_embed.add_field(name="🌡️ Temperature", value=f"{temp}°C", inline=True)
             humid_embed.add_field(name="💧 Humidity", value=f"{humid}%", inline=True)
