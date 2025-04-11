@@ -34,7 +34,7 @@ safety_settings = [
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"}
 ]
 
-model = genai.GenerativeModel(model_name="gemini-1.5-flash", safety_settings=safety_settings, generation_config=text_generation_config, system_instruction=system_prompt)
+model = genai.GenerativeModel(model_name="gemini-2.0-flash", safety_settings=safety_settings, generation_config=text_generation_config, system_instruction=system_prompt)
 
 class Gemini(commands.Cog):
     def __init__(self, client):
